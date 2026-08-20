@@ -26,7 +26,7 @@ function Test2(props) {
     const [name] = useState('Jitka');
     return `Name: ${name}, Count: ${count}`;
   }
-  // hook index = 1 (overlapping)
+  // also hook index = 1 (overlapping)
   const [age] = useState(30);
   return `Age: ${age}, Count: ${count}`;
 }
@@ -105,3 +105,53 @@ const parentInst = createInstance(function Parent() {
 });
 
 render(parentInst);
+
+// Test 7: React checks and throws
+console.log('\n---TEST 7');
+
+const expectThrow = (testLabel, fun) => {
+  try {
+    fun();
+    console.log(`[${testLabel}] No error.`);
+  } catch (e) {
+    console.log(`Error [${testLabel}]:\n${e.message}\n`);
+  }
+};
+
+expectThrow('Hook call outside of component', () => {
+  const [count] = useState(0);
+});
+
+function HandlerTest () {
+  HandlerTest.onClick = () => {
+    const [count] = useState(0);
+  };
+  return 'Handler test.';
+}
+
+render(createInstance(HandlerTest));
+
+expectThrow('Inside of a handler', () => {
+  HandlerTest.onClick();
+});
+
+function EarlyReturn (props) {
+  const [count] = useState(10); // Index 0
+  if (props.early) {
+    return 'Early return.'
+  }
+  const [name] = useState('Petr'); // Index 1
+  return `${name}: ${count}`;
+};
+
+const earlyReturnInst = createInstance(EarlyReturn);
+render(earlyReturnInst);
+expectThrow('Inside condition - fewer hooks', () => {
+  render(earlyReturnInst, {early: true});
+});
+
+const earlyReturnInst2 = createInstance(EarlyReturn, {early: true});
+render(earlyReturnInst2);
+expectThrow('Inside condition - more hooks', () => {
+  render(earlyReturnInst2, {early: false});
+});

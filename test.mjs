@@ -88,3 +88,20 @@ const fruitInst = createInstance(Fruit);
 render(fruitInst);
 render(fruitInst);
 render(fruitInst);
+
+// Test 6: nested rendering
+console.log('\n---TEST 6');
+
+const childInst = createInstance(function Child() {
+  const [state] = useState('child');
+  return state;
+});
+
+const parentInst = createInstance(function Parent() {
+  const [state1] = useState('parent-1');
+  const inner = render(childInst);
+  const [state2] = useState('parent-2');
+  return `${state1} ${inner} ${state2}`;
+});
+
+render(parentInst);

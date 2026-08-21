@@ -1,10 +1,16 @@
 import {useState, render, createInstance} from './framework.mjs';
 
-// Test 1: basic
-console.log('---TEST 1');
+// Wait for all microtasks
+// - for having all renders printed to console before moving to the next test
+const flush = () => new Promise(resolve => setImmediate(resolve));
+
+/**
+ * Test 1: basic
+ */
+console.log('---Test 1------');
 
 function Counter(props) {
-  const [count] = useState(0);
+  const [count, setCount] = useState(0);
   const [name] = useState('Petr');
   return `[${props.label}] ${name}: ${count}`;
 }
@@ -15,8 +21,12 @@ const [, setCount] = counterInst.hooks[0];
 setCount(1);
 setCount(2);
 
-// Test 2: hook inside an if-block (overlapping indexes)
-console.log('\n---TEST 2');
+await flush();
+
+/**
+ * Test 2: hook inside an if-block (overlapping indexes)
+ */
+console.log('\n---Test 2------');
 
 function Test2(props) {
   // hook index = 0
@@ -35,8 +45,10 @@ const test2Inst = createInstance(Test2);
 render(test2Inst, {showName: true});
 render(test2Inst, {showName: false});
 
-// TEST 3: multiple instances
-console.log('\n---TEST 3');
+/**
+ * Test 3: multiple instances
+ */
+console.log('\n---Test 3------');
 
 function Test3(props) {
   const [count] = useState(0);
@@ -47,11 +59,17 @@ const A = createInstance(Test3, {label: 'A'});
 const B = createInstance(Test3, {label: 'B'});
 render(A);
 render(B);
-A.hooks[0][1](1000); // set A.count
+const [, setCountA] = A.hooks[0];
+setCountA(1000);
+await flush();
 render(B); // B keeps its state
 
-// TEST 4: consecutive useState calls
-console.log('\n---TEST 4');
+await flush();
+
+/**
+ * TEST 4: consecutive useState calls
+ */
+console.log('\n---Test 4------');
 
 function Test4() {
   const [count, setCount] = useState(0);
@@ -71,8 +89,12 @@ render(test4Inst);
 Test4.handlerDirect();
 Test4.handlerFunctional();
 
-// TEST 5: functional initial value
-console.log('\n---TEST 5');
+await flush();
+
+/**
+ * Test 5: functional initial value
+ */
+console.log('\n---Test 5------');
 
 const init = (val) => {
   console.log(`init ${val}`);
@@ -89,8 +111,10 @@ render(fruitInst);
 render(fruitInst);
 render(fruitInst);
 
-// Test 6: nested rendering
-console.log('\n---TEST 6');
+/**
+ * Test 6: nested rendering
+ */
+console.log('\n---Test 6------');
 
 const childInst = createInstance(function Child() {
   const [state] = useState('child');
@@ -106,8 +130,10 @@ const parentInst = createInstance(function Parent() {
 
 render(parentInst);
 
-// Test 7: React checks and throws
-console.log('\n---TEST 7');
+/**
+ * Test 7: React checks and throws
+ */
+console.log('\n---Test 7------');
 
 const expectThrow = (testLabel, fun) => {
   try {

@@ -71,13 +71,13 @@ await flush();
  */
 console.log('\n---Test 4------');
 
-function Test4() {
+function Test4(props) {
   const [count, setCount] = useState(0);
-  Test4.handlerDirect = () => {
+  props.handlerDirect = () => {
     setCount(count + 1);
     setCount(count + 1);
   };
-  Test4.handlerFunctional = () => {
+  props.handlerFunctional = () => {
     setCount(prev => prev + 1);
     setCount(prev => prev + 1);
   };
@@ -86,8 +86,8 @@ function Test4() {
 
 const test4Inst = createInstance(Test4);
 render(test4Inst);
-Test4.handlerDirect();
-Test4.handlerFunctional();
+test4Inst.props.handlerDirect();
+test4Inst.props.handlerFunctional();
 
 await flush();
 
@@ -148,17 +148,18 @@ expectThrow('Hook call outside of component', () => {
   const [count] = useState(0);
 });
 
-function HandlerTest () {
-  HandlerTest.onClick = () => {
+function HandlerTest (props) {
+  props.onClick = () => {
     const [count] = useState(0);
   };
   return 'Handler test.';
 }
 
-render(createInstance(HandlerTest));
+const handlerInst = createInstance(HandlerTest);
+render(handlerInst);
 
 expectThrow('Inside of a handler', () => {
-  HandlerTest.onClick();
+  handlerInst.onClick();
 });
 
 function EarlyReturn (props) {
@@ -188,15 +189,15 @@ const useCustomHook = () => {
   return {count, inc};
 }
 
-function Custom() {
+function Custom(props) {
   const {count, inc} = useCustomHook();
-  Custom.inc = inc;
+  props.inc = inc;
   return `Custom count: ${count}`;
 }
 
 const customInst = createInstance(Custom);
-expectThrow('Custom hook - allowed', () => {
+expectThrow('Custom hook - allowed', () => { // No error thrown here
   render(customInst);
+  customInst.props.inc();
+  customInst.props.inc();
 });
-Custom.inc();
-Custom.inc();

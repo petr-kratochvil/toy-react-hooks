@@ -1,3 +1,6 @@
+// Run function in a new microtask (for async evaluation of a hook)
+const defer = (fun) => Promise.resolve().then(fun);
+
 // Instances
 export function createInstance(Component, props = {}) {
   return { Component, props, hooks: [], hookCount: undefined };
@@ -20,22 +23,28 @@ export function useState(initialValue) {
     throw new Error('Rendered more hooks than during the previous render.');
   }
 
+  // Process the next hook in the current instance
   const instance = currentInstance;
   let currentHook = instance.hooks[currentHookIndex];
 
-  // First time to see this hook - create it
   if (currentHook === undefined) {
-
-    const setState = (newValue) => {
-      currentHook[0] = typeof newValue === 'function' ?
+    // If the hook was not processed in previous renders (i.e. it is the first render
+    // of the instance), create its initial value and setter
+    const setState = (newValue) => defer(() => {
+      const newEvaluated = typeof newValue === 'function' ?
         newValue(currentHook[0]) : newValue;
-      render(instance);
-    };
+      
+      if (!Object.is(currentHook[0], newEvaluated)) {
+        // If value changed, update it and rerender instance
+        currentHook[0] = newEvaluated;
+        render(instance);
+      }
+    });
 
-    currentHook = [
-      typeof initialValue === 'function' ? initialValue() : initialValue,
-      setState
-    ];
+    const initialEvaluated = typeof initialValue === 'function' ?
+      initialValue() : initialValue;
+
+    currentHook = [initialEvaluated, setState];
     instance.hooks[currentHookIndex] = currentHook;
   }
   currentHookIndex++;

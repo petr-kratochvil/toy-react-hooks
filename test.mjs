@@ -181,3 +181,22 @@ render(earlyReturnInst2);
 expectThrow('Inside condition - more hooks', () => {
   render(earlyReturnInst2, {early: false});
 });
+
+const useCustomHook = () => {
+  const [count, setCount] = useState(0);
+  const inc = () => setCount(prev => prev + 1);
+  return {count, inc};
+}
+
+function Custom() {
+  const {count, inc} = useCustomHook();
+  Custom.inc = inc;
+  return `Custom count: ${count}`;
+}
+
+const customInst = createInstance(Custom);
+expectThrow('Custom hook - allowed', () => {
+  render(customInst);
+});
+Custom.inc();
+Custom.inc();

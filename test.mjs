@@ -1,9 +1,9 @@
 import {useState, useEffect, render, createInstance, unmountInstance} from './framework.mjs';
 
-// Wait for all microtasks
-// - for having all renders printed to console before moving to the next test
+// Wait for all microtasks - for having all state updates printed to console before moving to the next test
 const flush = () => new Promise((resolve) => setImmediate(resolve));
-// Wait for macrotasks (useEffect)
+
+// Wait for macrotasks (effect callbacks and cleanups)
 const wait = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 /**

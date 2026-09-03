@@ -1,8 +1,10 @@
-import {assertNoMissingHooks} from './assertHooks.mjs';
+import {assertNoMissingHooks, assertNoUnmounted} from './assertHooks.mjs';
 import {runEffects} from './useEffect.mjs';
 
 // The render function
 export function render(context, instance, props = {}) {
+  assertNoUnmounted(instance);
+
   // save context
   const prevInstance = context.currentInstance;
   const prevIndex = context.currentHookIndex;

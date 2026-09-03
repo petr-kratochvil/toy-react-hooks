@@ -4,12 +4,14 @@ import {useEffect as useEffectWithContext, cancelEffects} from './useEffect.mjs'
 
 // Create component instance - use initial values
 export function createInstance(Component, props = {}) {
-  return {Component, props, hooks: [], hookCount: undefined};
+  return {Component, props, hooks: [], hookCount: undefined, isUnmounted: false};
 }
 
 // Unmount instance
 // - drop the effects still queued for it, then call the stored effect cleanups
 function unmountInstanceWithContext(context, instance) {
+  if (instance.isUnmounted) return;
+  instance.isUnmounted = true;
   cancelEffects(context, instance);
   instance.hooks.forEach((hook) => {
     if (hook && typeof hook.cleanup === 'function') hook.cleanup();

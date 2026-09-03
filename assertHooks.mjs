@@ -31,3 +31,11 @@ export function assertNoMissingHooks(context) {
     );
   }
 }
+
+export function assertNoUnmounted(instance) {
+  if (instance.isUnmounted) {
+    // This error can happed when manually controlling the lifecycle: 'Cannot update an unmounted root.'
+    // In our model, it just means render() was manually called on unmounted instance
+    throw new Error('Cannot render an unmounted component instance.');
+  }
+}

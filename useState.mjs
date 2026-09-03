@@ -10,6 +10,9 @@ const defer = (fun) => Promise.resolve().then(fun);
 // The setState function
 const applyStateUpdate = (context, instance, currentHook, newValue) =>
   defer(() => {
+    // Previously "Warning: Can't perform a React state update on an unmounted component."
+    // A no-op since React 18.
+    if (instance.isUnmounted) return;
     const newEvaluated = typeof newValue === 'function' ? newValue(currentHook[0]) : newValue;
 
     if (!Object.is(currentHook[0], newEvaluated)) {

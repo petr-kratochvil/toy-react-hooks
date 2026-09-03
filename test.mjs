@@ -2,7 +2,7 @@ import {useState, render, createInstance} from './framework.mjs';
 
 // Wait for all microtasks
 // - for having all renders printed to console before moving to the next test
-const flush = () => new Promise(resolve => setImmediate(resolve));
+const flush = () => new Promise((resolve) => setImmediate(resolve));
 
 /**
  * Test 1: basic
@@ -78,8 +78,8 @@ function Test4(props) {
     setCount(count + 1);
   };
   props.handlerFunctional = () => {
-    setCount(prev => prev + 1);
-    setCount(prev => prev + 1);
+    setCount((prev) => prev + 1);
+    setCount((prev) => prev + 1);
   };
   return `count: ${count}`;
 }
@@ -99,7 +99,7 @@ console.log('\n---Test 5------');
 const init = (val) => {
   console.log(`init ${val}`);
   return val;
-}
+};
 function Fruit() {
   const [fruit1] = useState(init('Apple'));
   const [fruit2] = useState(() => init('Pear'));
@@ -148,7 +148,7 @@ expectThrow('Hook call outside of component', () => {
   const [count] = useState(0);
 });
 
-function HandlerTest (props) {
+function HandlerTest(props) {
   props.onClick = () => {
     const [count] = useState(0);
   };
@@ -162,14 +162,14 @@ expectThrow('Inside of a handler', () => {
   handlerInst.onClick();
 });
 
-function EarlyReturn (props) {
+function EarlyReturn(props) {
   const [count] = useState(10); // Index 0
   if (props.early) {
-    return 'Early return.'
+    return 'Early return.';
   }
   const [name] = useState('Petr'); // Index 1
   return `${name}: ${count}`;
-};
+}
 
 const earlyReturnInst = createInstance(EarlyReturn);
 render(earlyReturnInst);
@@ -185,9 +185,9 @@ expectThrow('Inside condition - more hooks', () => {
 
 const useCustomHook = () => {
   const [count, setCount] = useState(0);
-  const inc = () => setCount(prev => prev + 1);
+  const inc = () => setCount((prev) => prev + 1);
   return {count, inc};
-}
+};
 
 function Custom(props) {
   const {count, inc} = useCustomHook();
@@ -196,7 +196,8 @@ function Custom(props) {
 }
 
 const customInst = createInstance(Custom);
-expectThrow('Custom hook - allowed', () => { // No error thrown here
+expectThrow('Custom hook - allowed', () => {
+  // No error thrown here
   render(customInst);
   customInst.props.inc();
   customInst.props.inc();

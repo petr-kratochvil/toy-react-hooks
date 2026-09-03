@@ -1,8 +1,10 @@
-import {useState, render, createInstance} from './framework.mjs';
+import {useState, useEffect, render, createInstance, unmountInstance} from './framework.mjs';
 
 // Wait for all microtasks
 // - for having all renders printed to console before moving to the next test
 const flush = () => new Promise((resolve) => setImmediate(resolve));
+// Wait for macrotasks (useEffect)
+const wait = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 /**
  * Test 1: basic
@@ -159,7 +161,7 @@ const handlerInst = createInstance(HandlerTest);
 render(handlerInst);
 
 expectThrow('Inside of a handler', () => {
-  handlerInst.onClick();
+  handlerInst.props.onClick();
 });
 
 function EarlyReturn(props) {
@@ -202,3 +204,74 @@ expectThrow('Custom hook - allowed', () => {
   customInst.props.inc();
   customInst.props.inc();
 });
+
+await flush();
+
+/**
+ * Test 8: useEffect
+ */
+console.log('\n---Test 8------');
+
+const myEffect = createInstance(function MyEffect() {
+  const [name, setName] = useState('Petr');
+  useEffect(() => {
+    console.log('...inside effect');
+    setName('Jitka');
+  }, []);
+  return `${name}'s effect.`;
+});
+
+render(myEffect);
+
+await wait();
+
+/**
+ * Test 9: effect cleanup
+ */
+console.log('\n---Test 9------');
+
+const myChatRoom = createInstance(function MyChatRoom(props) {
+  const [room, setRoom] = useState('general');
+  props.setRoom = setRoom;
+
+  useEffect(() => {
+    console.log(`connected to "${room}"`);
+    return () => console.log(`disconnected from "${room}"`);
+  }, [room]);
+
+  return `Current room: ${room}`;
+});
+
+render(myChatRoom);
+myChatRoom.props.setRoom('random');
+await wait();
+unmountInstance(myChatRoom);
+
+await wait();
+
+/**
+ * Test 10: effect dependencies
+ */
+console.log('\n---Test 10------');
+
+const myCounter = createInstance(function MyCounter(props) {
+  const [count, setCount] = useState(0);
+  const [char, setChar] = useState('x');
+  props.setCount = setCount;
+  props.setChar = setChar;
+
+  // mount only
+  useEffect(() => console.log(`...effect A: ${count}, ${char}`), []);
+  // dependent on count change
+  useEffect(() => console.log(`...effect B: ${count}, ${char}`), [count]);
+  // every render
+  useEffect(() => console.log(`...effect C: ${count}, ${char}`));
+
+  return `${count}, ${char}`;
+});
+
+render(myCounter);
+myCounter.props.setCount(1);
+myCounter.props.setChar('y');
+
+await wait();
